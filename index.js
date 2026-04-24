@@ -31,23 +31,60 @@ var seneca = require('seneca')();
 
 // start
 //adding a service to seneca
-seneca.add({role: 'math', cmd:'sum'}, function (msg, respond){
-    var sum = msg.left + msg.right;
-    respond(null, {answer: sum})
+// seneca.add({role: 'math', cmd:'sum'}, function (msg, respond){
+//     var sum = msg.left + msg.right;
+//     respond(null, {answer: sum})
+// })
+
+// //another service
+// seneca.add({role: 'math', cmd:'product'}, function(msg, respond){
+//     var product = msg.left * msg.right;
+//     respond(null, {answer: product})
+// })
+
+
+// seneca.act({role: 'math', cmd:'sum', left: 2, right: 3}, function(err, data){
+//     if(err){
+//         return console.error(err)
+//     }
+//     console.log(data)
+// })
+
+// seneca.act({role: 'math', cmd: 'product', left: 2, right: 3}, console.log)
+
+
+//dependency injection example
+// seneca.add({component: 'greeter'}, function(MessageChannel, respond){
+//     respond(null, {message: 'Hello ' + message})
+// })
+
+// //dependency injection because, when this coonsumer is calling the producer above, it can pass in the interface, in this case, the message
+// seneca.act({component: 'greeter', name: 'David'}, function(error, response){
+//     if(error) return console.log(error);
+//     console.log(response.message)
+// })
+
+// Pattern matching in seneca using "Patrun"
+seneca.add({cmd: 'wordcount'}, function(msg, respond){
+    var length = msg.phrase.split(' ').length;
+    respond(null, {words: length})
 })
 
-//another service
-seneca.add({role: 'math', cmd:'product'}, function(msg, respond){
-    var product = msg.left * msg.right;
-    respond(null, {answer: product})
-})
-
-
-seneca.act({role: 'math', cmd:'sum', left: 2, right: 3}, function(err, data){
-    if(err){
-        return console.error(err)
+seneca.add({cmd: 'wordcount', skipShort: true}, function(msg, respond){
+    var length = msg.phrase.split(' ');
+    var validWords = 0;
+    for (var i = 0; i < length.length; i++){
+        if(length[i].length > 3){
+            validWords++;
+        }
     }
-    console.log(data)
+    respond(null, {words: validWords})
 })
 
-seneca.act({role: 'math', cmd: 'product', left: 2, right: 3}, console.log)
+seneca.act({cmd: 'wordcount', phrase: 'Hello world this is Seneca'}, function(err, response){
+    console.log(response);
+})
+
+seneca.act({cmd: 'wordcount', skipShort: true, phrase: 'Hello world this is Seneca' }, function(err, response){
+    console.log(response);
+})
